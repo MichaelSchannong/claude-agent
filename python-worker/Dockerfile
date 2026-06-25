@@ -18,4 +18,8 @@ COPY scripts/ ./scripts/
 
 RUN mkdir -p /app/data /app/logs
 
+# Kopiér kildekode til /workspace så VS Code kan se den
+RUN mkdir -p /workspace/python-worker
+COPY . /workspace/python-worker/
+
 CMD ["python", "app/main.py"]

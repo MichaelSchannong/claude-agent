@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
 
+  # ── 1. Python Worker ──────────────────────────────────────
   python-worker:
     build:
       context: ./python-worker
@@ -10,14 +11,13 @@ services:
     container_name: claude-python-worker
     restart: unless-stopped
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - TZ=Europe/Copenhagen
       - NODE_API_URL=http://node-api:3000
     volumes:
       - shared-data:/app/data
       - shared-logs:/app/logs
+      - project-files:/workspace
     networks:
       - claude-net
     depends_on:
@@ -28,6 +28,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
+  # ── 2. Node.js API + GUI ──────────────────────────────────
   node-api:
     build:
       context: ./node-api
@@ -45,6 +46,7 @@ services:
     volumes:
       - shared-data:/app/data
       - shared-logs:/app/logs
+      - project-files:/workspace
     networks:
       - claude-net
     logging:
@@ -53,9 +55,35 @@ services:
         max-size: "50m"
         max-file: "3"
 
+  # ── 3. VS Code i browseren (code-server) ──────────────────
+  vscode:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: claude-vscode
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Copenhagen
+      - PASSWORD=${VSCODE_PASSWORD:-piagent123}
+      - DEFAULT_WORKSPACE=/workspace
+    ports:
+      - "8080:8443"
+    volumes:
+      - project-files:/workspace      # Delte projektfiler
+      - vscode-config:/config         # VS Code indstillinger
+    networks:
+      - claude-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
 volumes:
   shared-data:
   shared-logs:
+  project-files:    # Delt mellem VS Code, Python og Node.js
+  vscode-config:
 
 networks:
   claude-net:

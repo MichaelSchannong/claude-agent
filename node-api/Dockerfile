@@ -13,4 +13,8 @@ RUN npm install --omit=dev
 COPY src/ ./src/
 RUN mkdir -p /app/data /app/logs
 
+# Kopiér kildekode til /workspace så VS Code kan se den
+RUN mkdir -p /workspace/node-api
+COPY . /workspace/node-api/
+
 CMD ["node", "src/server.js"]
