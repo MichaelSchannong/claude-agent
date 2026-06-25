@@ -1,13 +1,7 @@
-# ============================================================
-# Claude Pi Agent – SAMLET LØSNING
-# Node.js (Web API + GUI) + Python (Claude Worker)
-# ============================================================
-
 version: "3.9"
 
 services:
 
-  # ── 1. Python Worker – kører Claude-opgaver ──────────────
   python-worker:
     build:
       context: ./python-worker
@@ -24,7 +18,6 @@ services:
     volumes:
       - shared-data:/app/data
       - shared-logs:/app/logs
-      - ./python-worker/scripts:/app/scripts:ro
     networks:
       - claude-net
     depends_on:
@@ -34,13 +27,7 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 384M
-          cpus: "1.0"
 
-  # ── 2. Node.js API – Web GUI + REST API ──────────────────
   node-api:
     build:
       context: ./node-api
@@ -65,21 +52,11 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: "0.5"
 
-# ── Delte volumes (Docker-styrede, ingen host-stier) ───────
 volumes:
   shared-data:
-    driver: local
   shared-logs:
-    driver: local
 
-# ── Internt netværk ────────────────────────────────────────
 networks:
   claude-net:
     driver: bridge
-    name: claude-network
