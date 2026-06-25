@@ -1,32 +1,16 @@
-"""TaskRunner – motor der kører scripts og taler med Claude."""
+"""TaskRunner – kører scripts og returnerer resultater."""
 
 import os, importlib.util
 from pathlib import Path
 from loguru import logger
-import anthropic
 
 class TaskRunner:
     def __init__(self):
-        self.api_key = os.getenv("ANTHROPIC_API_KEY")
-        self.model   = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6")
         self.tasks_dir = Path("/app/scripts/tasks")
         self.data_dir  = Path("/app/data")
         self.tasks_dir.mkdir(parents=True, exist_ok=True)
         self.data_dir.mkdir(parents=True, exist_ok=True)
-
-        if not self.api_key:
-            raise ValueError("ANTHROPIC_API_KEY ikke sat")
-
-        self.client = anthropic.Anthropic(api_key=self.api_key)
-        logger.info(f"✅ Claude klient klar (model: {self.model})")
-
-    def ask_claude(self, prompt: str, system: str = None, max_tokens: int = 1000) -> str:
-        kwargs = {"model": self.model, "max_tokens": max_tokens,
-                  "messages": [{"role": "user", "content": prompt}]}
-        if system:
-            kwargs["system"] = system
-        response = self.client.messages.create(**kwargs)
-        return response.content[0].text
+        logger.info("✅ TaskRunner klar")
 
     def run(self, task_name: str):
         task_file = self.tasks_dir / f"{task_name}.py"
