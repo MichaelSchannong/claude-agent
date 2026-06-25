@@ -1,7 +1,6 @@
 # ============================================================
 # Claude Pi Agent – SAMLET LØSNING
 # Node.js (Web API + GUI) + Python (Claude Worker)
-# Kører sammen på Raspberry Pi via Portainer CE
 # ============================================================
 
 version: "3.9"
@@ -21,10 +20,10 @@ services:
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - TZ=Europe/Copenhagen
-      - NODE_API_URL=http://node-api:3000   # Taler med Node.js
+      - NODE_API_URL=http://node-api:3000
     volumes:
-      - shared-data:/app/data               # Delt data-mappe
-      - shared-logs:/app/logs               # Delte logs
+      - shared-data:/app/data
+      - shared-logs:/app/logs
       - ./python-worker/scripts:/app/scripts:ro
     networks:
       - claude-net
@@ -55,10 +54,10 @@ services:
       - TZ=Europe/Copenhagen
       - PYTHON_WORKER_URL=http://python-worker:5000
     ports:
-      - "3000:3000"     # Tilgå GUI på http://<pi-ip>:3000
+      - "3000:3000"
     volumes:
-      - shared-data:/app/data               # Samme delte data
-      - shared-logs:/app/logs               # Samme delte logs
+      - shared-data:/app/data
+      - shared-logs:/app/logs
     networks:
       - claude-net
     logging:
@@ -72,25 +71,14 @@ services:
           memory: 256M
           cpus: "0.5"
 
-# ── Delte volumes (10 GB på Pi) ───────────────────────────
+# ── Delte volumes (Docker-styrede, ingen host-stier) ───────
 volumes:
   shared-data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/claude-agent/data
-    labels:
-      - "com.claude.size=10GB"
-
   shared-logs:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/claude-agent/logs
 
-# ── Internt netværk ───────────────────────────────────────
+# ── Internt netværk ────────────────────────────────────────
 networks:
   claude-net:
     driver: bridge
