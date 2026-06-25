@@ -418,4 +418,4 @@ setInterval(checkStatus, 15000);
 </body>
 </html>`));
 
-app.listen(PORT, "0.0.0.0", () => logger.info(\`🌐 Node.js kører på port \${PORT}\`));
+app.listen(PORT, "0.0.0.0", () => logger.info("Nodejs korer pa port " + PORT));
