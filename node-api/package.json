@@ -1,0 +1,23 @@
+{
+  "name": "claude-pi-node-api",
+  "version": "1.0.0",
+  "description": "Web GUI + API til Claude Pi Agent",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "fs-extra": "^11.2.0",
+    "node-fetch": "^3.3.2",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": { "node": ">=20.0.0" },
+  "author": "MichaelSchannong",
+  "license": "MIT"
+}

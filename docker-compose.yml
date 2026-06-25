@@ -1,0 +1,97 @@
+# ============================================================
+# Claude Pi Agent – SAMLET LØSNING
+# Node.js (Web API + GUI) + Python (Claude Worker)
+# Kører sammen på Raspberry Pi via Portainer CE
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # ── 1. Python Worker – kører Claude-opgaver ──────────────
+  python-worker:
+    build:
+      context: ./python-worker
+      dockerfile: Dockerfile
+    image: claude-python-worker:latest
+    container_name: claude-python-worker
+    restart: unless-stopped
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - TZ=Europe/Copenhagen
+      - NODE_API_URL=http://node-api:3000   # Taler med Node.js
+    volumes:
+      - shared-data:/app/data               # Delt data-mappe
+      - shared-logs:/app/logs               # Delte logs
+      - ./python-worker/scripts:/app/scripts:ro
+    networks:
+      - claude-net
+    depends_on:
+      - node-api
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+          cpus: "1.0"
+
+  # ── 2. Node.js API – Web GUI + REST API ──────────────────
+  node-api:
+    build:
+      context: ./node-api
+      dockerfile: Dockerfile
+    image: claude-node-api:latest
+    container_name: claude-node-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TZ=Europe/Copenhagen
+      - PYTHON_WORKER_URL=http://python-worker:5000
+    ports:
+      - "3000:3000"     # Tilgå GUI på http://<pi-ip>:3000
+    volumes:
+      - shared-data:/app/data               # Samme delte data
+      - shared-logs:/app/logs               # Samme delte logs
+    networks:
+      - claude-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+# ── Delte volumes (10 GB på Pi) ───────────────────────────
+volumes:
+  shared-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/claude-agent/data
+    labels:
+      - "com.claude.size=10GB"
+
+  shared-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/claude-agent/logs
+
+# ── Internt netværk ───────────────────────────────────────
+networks:
+  claude-net:
+    driver: bridge
+    name: claude-network
